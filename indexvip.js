@@ -1,48 +1,52 @@
-const axios = require('axios');
-const fs = require('fs');
-const readline = require('readline');
+import os
+import sys
+import time
+import json
+import random
+import asyncio
+import datetime
+import requests
+from pathlib import Path
+from typing import List, Dict, Optional, Any
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+plus = " [\x1b[32m+\x1b[0m]"
+mins = " \x1b[0m[\x1b[31m-\x1b[0m]"
+seru = "\x1b[0m[\x1b[34m!\x1b[0m]"
 
-async function runBot() {
-    try {
-        const cookies = fs.readFileSync('cookie.txt', 'utf-8').trim().split('\n');
-        const emails = fs.readFileSync('email.txt', 'utf-8').trim().split('\n');
-        
-        if (cookies.length !== emails.length) {
-            console.log('Jumlah cookies dan email tidak cocok!');
-            return;
-        }
+base_url = "https://api.voltix.ai"
+user_agents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+]
 
-        for (let i = 0; i < cookies.length; i++) {
-            console.log(`Processing for email: ${emails[i]}`);
-            await fetchQuests(cookies[i]);
-        }
-    } catch (error) {
-        console.error('Error:', error.message);
-    }
-}
+def get_random_user_agent() -> str:
+    return random.choice(user_agents)
 
-async function fetchQuests(cookie) {
-    try {
-        const response = await axios.get('https://www.magicnewton.com/portal/api/userQuests', {
-            headers: {
-                'Cookie': cookie,
-                'User-Agent': 'Mozilla/5.0'
-            }
-        });
-        
-        if (response.data) {
-            console.log('Quests:', response.data);
-        } else {
-            console.log('No quests found.');
-        }
-    } catch (error) {
-        console.error('Failed to fetch quests:', error.message);
-    }
-}
+def get_headers() -> Dict[str, str]:
+    return {"User-Agent": get_random_user_agent()}
 
-runBot();
+def fetch_quests() -> Optional[Dict[str, Any]]:
+    try:
+        response = requests.get(f"{base_url}/tasks/socials", headers=get_headers(), timeout=30)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"{mins} Failed to fetch quests: {response.status_code} {response.text}")
+            return None
+    except Exception as e:
+        print(f"{mins} Error fetching quests: {str(e)}")
+        return None
+
+async def main() -> None:
+    print('\n\x1b[34mScript Tanpa Autentikasi\x1b[0m - \x1b[33mNo Login Required\x1b[0m\n')
+    
+    while True:
+        print(f"{plus} Fetching quest data...")
+        quests = fetch_quests()
+        if quests:
+            print(f"{plus} Quests: {json.dumps(quests, indent=2)}")
+        await asyncio.sleep(10)  # Delay 10 detik untuk simulasi
+
+if _name_ == "_main_":
+    asyncio.run(main())
