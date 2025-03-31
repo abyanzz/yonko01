@@ -5,7 +5,7 @@
 
 # HOW TO RUN
 ```
-git clone https://github.com/AirdropFamilyIDN-V2-0/tisumagic.git
+git clone https://github.com/abyanzz/yonko01.git
 ```
 ```
 npm init -y
